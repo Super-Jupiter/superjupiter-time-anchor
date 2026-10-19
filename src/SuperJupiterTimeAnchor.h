@@ -2,38 +2,30 @@
 // Copyright (c) 2026 SuperJupiter
 #ifndef SUPERJUPITER_TIME_ANCHOR_H
 #define SUPERJUPITER_TIME_ANCHOR_H
-#if defined(__FAST_MATH__) || (defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__ > 0)
+#if defined(__FAST_MATH__) ||                                                  \
+    (defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__ > 0)
 #error "SuperJupiter requires IEEE non-finite checks; disable fast-math"
 #endif
-#include <float.h>
-#include <math.h>
 #include <stddef.h>
 #include <stdint.h>
-#define SUPERJUPITER_TIME_ANCHOR_VERSION "0.1.0"
+#define SUPERJUPITER_TIME_ANCHOR_VERSION "0.1.1"
 namespace superjupiter {
 namespace time_anchor {
 
-namespace detail {
-inline bool finite(double value) { return value == value && value >= -DBL_MAX && value <= DBL_MAX; }
-inline double oneMinusExpNegative(double ratio) {
-  // Stable at small elapsed/tau without requiring AVR's unavailable expm1.
-  if (ratio < 0.01) {
-    double term = ratio, total = ratio;
-    for (unsigned n = 2; n <= 12; ++n) {
-      term *= -ratio / n;
-      total += term;
-    }
-    return total;
-  }
-  return 1 - ::exp(-ratio);
-}
-} // namespace detail
-
-enum class Status { Ok, NoAnchor, InvalidConfig, InvalidAnchor, OutsideHorizon, Expired, Overflow };
+enum class Status {
+  Ok,
+  NoAnchor,
+  InvalidConfig,
+  InvalidAnchor,
+  OutsideHorizon,
+  Expired,
+  Overflow
+};
 struct Config {
   uint32_t maxAgeMs;
   uint32_t driftPpm;
-  Config(uint32_t age = 86400000, uint32_t drift = 100) : maxAgeMs(age), driftPpm(drift) {}
+  Config(uint32_t age = 86400000, uint32_t drift = 100)
+      : maxAgeMs(age), driftPpm(drift) {}
 };
 struct Result {
   Status status;
@@ -49,7 +41,8 @@ class TimeAnchor {
 
 public:
   explicit TimeAnchor(Config config = Config())
-      : config_(config), anchored_(false), tick_(0), revision_(0), uncertainty_(0), utc_(0) {}
+      : config_(config), anchored_(false), tick_(0), revision_(0),
+        uncertainty_(0), utc_(0) {}
   Status setAnchor(uint32_t tickMs, int64_t utcMs, uint32_t uncertaintyMs) {
     if (config_.maxAgeMs >= 0x80000000UL)
       return Status::InvalidConfig;
@@ -81,7 +74,8 @@ public:
     }
     r.utcMs = utc_ + dt;
     r.uncertaintyMs =
-        uncertainty_ + (static_cast<uint64_t>(dt) * config_.driftPpm + 999999) / 1000000;
+        uncertainty_ +
+        (static_cast<uint64_t>(dt) * config_.driftPpm + 999999) / 1000000;
     r.status = Status::Ok;
     return r;
   }

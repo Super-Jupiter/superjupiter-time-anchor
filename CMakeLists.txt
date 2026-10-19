@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(SuperJupiterTimeAnchor VERSION 0.1.0 LANGUAGES CXX)
+project(SuperJupiterTimeAnchor VERSION 0.1.1 LANGUAGES CXX)
 
 set(_superjupiter_time_anchor_top_level OFF)
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
@@ -19,6 +19,9 @@ target_compile_features(SuperJupiterTimeAnchor INTERFACE cxx_std_11)
 
 if(SUPERJUPITER_TIME_ANCHOR_BUILD_TESTS)
   enable_testing()
+  add_executable(superjupiter-time-anchor-review tests/review_regressions.cpp)
+  target_link_libraries(superjupiter-time-anchor-review PRIVATE SuperJupiter::TimeAnchor)
+  add_test(NAME superjupiter-time-anchor-review COMMAND superjupiter-time-anchor-review)
   add_executable(superjupiter-time-anchor-tests tests/test.cpp)
   target_link_libraries(superjupiter-time-anchor-tests PRIVATE SuperJupiter::TimeAnchor)
   add_test(NAME superjupiter-time-anchor-tests COMMAND superjupiter-time-anchor-tests)
